@@ -1,7 +1,7 @@
 <?php
  use Illuminate\Database\Migrations\Migration;
  use Illuminate\Database\Schema\Blueprint;  
-use Illuminate\Support\Facades\Schema;
+ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -13,7 +13,8 @@ return new class extends Migration
         Schema::create('promotion', function (Blueprint $table) {
             $table->id('id_promotion');
             $table->year('annee');
-            $table->foreignId('id_niveau')->constrained('niveau', 'id_niveau');            $table->timestamps();
+            $table->foreignId('id_niveau')->constrained('niveau', 'id_niveau');            
+            $table->timestamps();
         });
     }
 
