@@ -6,34 +6,30 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Presentation extends Model
+class Observation extends Model
 {
     use HasFactory, HasUuids;
 
-    protected $table = 'presentations';
-    protected $primaryKey = 'id_presentation';
+    protected $table = 'observations';
+    protected $primaryKey = 'id_observation';
     public $incrementing = false;
     protected $keyType = 'string';
 
     protected $fillable = [
-        'date_presentation',
-        'heure_presentation',
-        'libelle',
-        'note_finale',
+        'contenu',
+        'date',
         'id_utilisateur',
         'id_projet',
-        'id_salle',
     ];
 
     protected function casts(): array
     {
         return [
-            'date_presentation' => 'date',
-            'note_finale' => 'decimal:2',
+            'date' => 'date',
         ];
     }
 
-    public function etudiant()
+    public function auteur()
     {
         return $this->belongsTo(Utilisateur::class, 'id_utilisateur', 'id_utilisateur');
     }
@@ -41,15 +37,5 @@ class Presentation extends Model
     public function projet()
     {
         return $this->belongsTo(Projet::class, 'id_projet', 'id_projet');
-    }
-
-    public function salle()
-    {
-        return $this->belongsTo(Salle::class, 'id_salle', 'id_salle');
-    }
-
-    public function jury()
-    {
-        return $this->hasOne(Jury::class, 'id_presentation', 'id_presentation');
     }
 }

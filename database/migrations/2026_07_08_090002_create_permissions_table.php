@@ -7,18 +7,18 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     public function up(): void
-{
-    Schema::create('permissions', function (Blueprint $table) {
-        $table->id('id_permission');
-        $table->string('code')->unique();
-        $table->string('libelle');
-        $table->text('description')->nullable();
-        $table->timestamps();
-    });
-}
+    {
+        Schema::create('permissions', function (Blueprint $table) {
+            $table->uuid('id_permission')->primary();
+            $table->string('code')->unique();
+            $table->string('libelle');
+            $table->text('description')->nullable();
+            $table->timestamps();
+        });
+    }
 
-public function down(): void
-{
-    Schema::dropIfExists('permissions');
-}
+    public function down(): void
+    {
+        Schema::dropIfExists('permissions');
+    }
 };

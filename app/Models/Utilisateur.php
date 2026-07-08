@@ -2,16 +2,19 @@
 
 namespace App\Models;
 
-use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
 
 class Utilisateur extends Authenticatable
 {
-    use HasFactory, HasApiTokens;
+    use HasFactory, HasApiTokens, HasUuids;
 
     protected $table = 'utilisateurs';
     protected $primaryKey = 'id_utilisateur';
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     protected $fillable = [
         'nom',

@@ -2,15 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Projet extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUuids;
 
     protected $table = 'projets';
     protected $primaryKey = 'id_projet';
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     protected $fillable = [
         'titre',

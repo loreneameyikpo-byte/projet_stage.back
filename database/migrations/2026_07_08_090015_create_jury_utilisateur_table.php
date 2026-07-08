@@ -9,11 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('jury_utilisateur', function (Blueprint $table) {
-            $table->foreignId('id_jury')
-                ->constrained('jury', 'id_jury')
-                ->onDelete('cascade');
-            $table->foreignId('id_utilisateur')
-                ->constrained('utilisateurs', 'id_utilisateur');
+            $table->foreignUuid('id_jury')->constrained('jury', 'id_jury')->onDelete('cascade');
+            $table->foreignUuid('id_utilisateur')->constrained('utilisateurs', 'id_utilisateur');
             $table->string('role_jury');
             $table->decimal('note_saisie', 4, 2)->nullable();
             $table->primary(['id_jury', 'id_utilisateur']);

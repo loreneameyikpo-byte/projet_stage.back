@@ -2,15 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Jury extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUuids;
 
     protected $table = 'jury';
     protected $primaryKey = 'id_jury';
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     protected $fillable = [
         'id_presentation',
