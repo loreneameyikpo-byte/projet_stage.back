@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('projet', function (Blueprint $table) {
+        Schema::create('projets', function (Blueprint $table) {
             $table->id('id_projet');
             $table->string('titre');
             $table->text('description');
@@ -17,8 +17,8 @@ return new class extends Migration
             'corrections',
             'valide',
         ])->default('en_attente');
-            $table->foreignId('id_utilisateur')->constrained('utilisateur', 'id_utilisateur');
-            $table->foreignId('id_encadreur')->nullable()->constrained('utilisateur', 'id_utilisateur');
+            $table->foreignId('id_utilisateur')->constrained('utilisateurs', 'id_utilisateur');
+            $table->foreignId('id_encadreur')->nullable()->constrained('utilisateurs', 'id_utilisateur');
             $table->timestamps();
         });
     }
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('projet');
+        Schema::dropIfExists('projets');
     }
 };

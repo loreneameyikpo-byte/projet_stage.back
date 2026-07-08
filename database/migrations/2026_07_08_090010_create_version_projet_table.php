@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('version_projet', function (Blueprint $table) {
+        Schema::create('version_projets', function (Blueprint $table) {
         $table->id('id_version');
         $table->unsignedInteger('numero_version');
         $table->string('rapport_pdf');
@@ -20,7 +20,7 @@ return new class extends Migration
             'corrections_demandees',
             'remplacee',
         ])->default('en_attente');
-        $table->foreignId('id_projet')->constrained('projet', 'id_projet')->onDelete('cascade');
+        $table->foreignId('id_projet')->constrained('projets', 'id_projet')->onDelete('cascade');
         $table->timestamps();
     });
 }
@@ -30,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('version_projet');
+        Schema::dropIfExists('version_projets');
     }
 };

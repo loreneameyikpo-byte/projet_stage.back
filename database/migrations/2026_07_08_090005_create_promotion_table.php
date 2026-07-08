@@ -10,10 +10,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('promotion', function (Blueprint $table) {
+        Schema::create('promotions', function (Blueprint $table) {
             $table->id('id_promotion');
             $table->year('annee');
-            $table->foreignId('id_niveau')->constrained('niveau', 'id_niveau');            
+            $table->foreignId('id_niveau')->constrained('niveaux', 'id_niveau');            
             $table->timestamps();
         });
     }
@@ -23,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('promotion');
+        Schema::dropIfExists('promotions');
     }
-}
+};

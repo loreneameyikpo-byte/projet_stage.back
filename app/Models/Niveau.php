@@ -8,7 +8,7 @@ class Niveau extends Model
 {
     use HasFactory;
 
-    protected $table = 'niveau';
+    protected $table = 'niveaux';
     protected $primaryKey = 'id_niveau';
 
     protected $fillable = [

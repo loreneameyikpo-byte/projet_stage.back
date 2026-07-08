@@ -9,7 +9,7 @@ class VersionProjet extends Model
 {
     use HasFactory;
 
-    protected $table = 'version_projet';
+    protected $table = 'version_projets';
     protected $primaryKey = 'id_version';
 
     protected $fillable = [

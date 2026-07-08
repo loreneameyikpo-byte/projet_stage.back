@@ -10,7 +10,7 @@ class Utilisateur extends Authenticatable
 {
     use HasFactory, HasApiTokens;
 
-    protected $table = 'utilisateur';
+    protected $table = 'utilisateurs';
     protected $primaryKey = 'id_utilisateur';
 
     protected $fillable = [

@@ -8,12 +8,12 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('observation', function (Blueprint $table) {
+        Schema::create('observations', function (Blueprint $table) {
         $table->id('id_observation');
         $table->text('contenu');
         $table->date('date');
-        $table->foreignId('id_utilisateur')->constrained('utilisateur', 'id_utilisateur');
-        $table->foreignId('id_projet')->constrained('projet', 'id_projet')->onDelete('cascade');
+        $table->foreignId('id_utilisateur')->constrained('utilisateurs', 'id_utilisateur');
+        $table->foreignId('id_projet')->constrained('projets', 'id_projet')->onDelete('cascade');
         $table->timestamps();
     });
     }
@@ -23,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('observation');
+        Schema::dropIfExists('observations');
     }
-}
+};

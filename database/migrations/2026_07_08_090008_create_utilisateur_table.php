@@ -7,7 +7,7 @@
  {
      public function up(): void
      {
-         Schema::create('utilisateur', function (Blueprint $table) {
+         Schema::create('utilisateurs', function (Blueprint $table) {
              $table->id('id_utilisateur');
              $table->string('nom');
              $table->string('prenom');
@@ -15,10 +15,10 @@
              $table->string('mot_de_passe');
              $table->string('contacts')->nullable();
              $table->string('adresse')->nullable();
-             $table->foreignId('id_role')->constrained('role', 'id_role');
-             $table->foreignId('id_promotion')->nullable()->constrained('promotion', 'id_promotion');
-             $table->foreignId('id_filiere')->nullable()->constrained('filiere', 'id_filiere');
-             $table->foreignId('id_specialite')->nullable()->constrained('specialite', 'id_specialite');
+             $table->foreignId('id_role')->constrained('roles', 'id_role');
+             $table->foreignId('id_promotion')->nullable()->constrained('promotions', 'id_promotion');
+             $table->foreignId('id_filiere')->nullable()->constrained('filieres', 'id_filiere');
+             $table->foreignId('id_specialite')->nullable()->constrained('specialites', 'id_specialite');
              $table->rememberToken();
              $table->timestamps();
 
@@ -30,6 +30,6 @@
       */
      public function down(): void
      {
-         Schema::dropIfExists('utilisateur');
+         Schema::dropIfExists('utilisateurs');
      }
  };

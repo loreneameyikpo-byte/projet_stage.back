@@ -10,7 +10,7 @@ class Promotion extends Model
 {
     use HasFactory;
 
-    protected $table = 'promotion';
+    protected $table = 'promotions';
     protected $primaryKey = 'id_promotion';
 
     protected $fillable = [

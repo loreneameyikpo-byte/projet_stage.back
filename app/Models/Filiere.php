@@ -9,7 +9,7 @@ class Filiere extends Model
 {
     use HasFactory;
 
-    protected $table = 'filiere';
+    protected $table = 'filieres';
     protected $primaryKey = 'id_filiere';
 
     protected $fillable = [
