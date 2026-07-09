@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Utilisateur;
 
+use App\Models\Role;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
 
@@ -9,7 +10,20 @@ class CreerUtilisateurRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return in_array($this->user()?->role?->libelle, ['administrateur', 'super_administrateur'], true);
+        $roleConnecte = $this->user()?->role?->libelle;
+
+        if (! in_array($roleConnecte, ['administrateur', 'super_administrateur'], true)) {
+            return false;
+        }
+
+        // Seul le super administrateur peut créer un compte administrateur ou super administrateur.
+        $roleCible = Role::find($this->input('id_role'))?->libelle;
+
+        if (in_array($roleCible, ['administrateur', 'super_administrateur'], true)) {
+            return $roleConnecte === 'super_administrateur';
+        }
+
+        return true;
     }
 
     public function rules(): array

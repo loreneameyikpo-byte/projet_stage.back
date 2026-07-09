@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Utilisateur;
 
+use App\Models\Role;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -9,7 +10,21 @@ class ModifierUtilisateurRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return in_array($this->user()?->role?->libelle, ['administrateur', 'super_administrateur'], true);
+        $roleConnecte = $this->user()?->role?->libelle;
+
+        if (! in_array($roleConnecte, ['administrateur', 'super_administrateur'], true)) {
+            return false;
+        }
+
+        $utilisateurCible = $this->route('utilisateur');
+        $roleCibleActuel = $utilisateurCible->role?->libelle;
+
+        // Un administrateur ne peut pas modifier un compte administrateur ou super administrateur.
+        if (in_array($roleCibleActuel, ['administrateur', 'super_administrateur'], true)) {
+            return $roleConnecte === 'super_administrateur';
+        }
+
+        return true;
     }
 
     public function rules(): array

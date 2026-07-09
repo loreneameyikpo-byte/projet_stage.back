@@ -79,6 +79,15 @@ class UtilisateurController extends Controller
      */
     public function destroy(Utilisateur $utilisateur): JsonResponse
     {
+         $roleConnecte = $request->user()?->role?->libelle;
+        $roleCible = $utilisateur->role?->libelle;
+
+        if (in_array($roleCible, ['administrateur', 'super_administrateur'], true) && $roleConnecte !== 'super_administrateur') {
+            return response()->json([
+                'message' => 'Seul le super administrateur peut supprimer un compte administrateur.',
+            ], 403);
+        }
+        
         $utilisateur->delete();
 
         return response()->json([

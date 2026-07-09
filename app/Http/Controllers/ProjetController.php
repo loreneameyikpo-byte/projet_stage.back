@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Projet\AffecterEncadreurRequest;
 use App\Http\Requests\Projet\DeposerVersionRequest;
 use App\Http\Requests\Projet\SoumettreProjetRequest;
 use App\Http\Requests\Projet\ValiderProjetRequest;
@@ -86,6 +87,22 @@ class ProjetController extends Controller
             ),
         ]);
     }
+    
+    /**
+     * L'administrateur affecte (ou réaffecte) un encadreur à un projet.
+     */
+    public function affecterEncadreur(AffecterEncadreurRequest $request, Projet $projet): JsonResponse
+    {
+        $projet->update([
+            'id_encadreur' => $request->validated('id_encadreur'),
+        ]);
+
+        return response()->json([
+            'message' => 'Encadreur affecté avec succès.',
+            'projet' => new ProjetResource($projet->fresh(['etudiant', 'encadreur', 'derniereVersion'])),
+        ]);
+    }
+
 
     /**
      * UC1 (extension) - Déposer une nouvelle version après corrections demandées.
@@ -118,7 +135,7 @@ class ProjetController extends Controller
             'projet' => new ProjetResource($projet->load(['derniereVersion', 'versions'])),
         ]);
     }
-
+    
     /**
      * UC2 - L'encadreur valide le projet ou demande des corrections.
      */
