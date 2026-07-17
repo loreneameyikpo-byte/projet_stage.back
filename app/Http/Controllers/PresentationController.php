@@ -10,7 +10,6 @@ use App\Models\Projet;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 
 class PresentationController extends Controller
 {
@@ -45,47 +44,7 @@ class PresentationController extends Controller
     public function store(PlanifierPresentationRequest $request): JsonResponse
     {
         $validated = $request->validated();
-
         $projet = Projet::findOrFail($validated['id_projet']);
-
-        if ($projet->statut !== 'valide') {
-            throw ValidationException::withMessages([
-                'id_projet' => 'Seul un projet au statut "validé" peut être planifié.',
-            ]);
-        }
-
-        if ($projet->presentation()->exists()) {
-            throw ValidationException::withMessages([
-                'id_projet' => 'Ce projet a déjà une présentation planifiée.',
-            ]);
-        }
-
-        // Vérification de la disponibilité de la salle sur ce créneau
-        $conflitSalle = Presentation::where('id_salle', $validated['id_salle'])
-            ->where('date_presentation', $validated['date_presentation'])
-            ->where('heure_presentation', $validated['heure_presentation'])
-            ->exists();
-
-        if ($conflitSalle) {
-            throw ValidationException::withMessages([
-                'id_salle' => 'Cette salle est déjà réservée sur ce créneau.',
-            ]);
-        }
-
-        // Vérification que les membres du jury sont libres sur ce créneau
-        $idsMembres = collect($validated['membres'])->pluck('id_utilisateur');
-        $conflitJury = Jury::whereHas('presentation', function ($q) use ($validated) {
-            $q->where('date_presentation', $validated['date_presentation'])
-              ->where('heure_presentation', $validated['heure_presentation']);
-        })->whereHas('membres', function ($q) use ($idsMembres) {
-            $q->whereIn('utilisateurs.id_utilisateur', $idsMembres);
-        })->exists();
-
-        if ($conflitJury) {
-            throw ValidationException::withMessages([
-                'membres' => 'Un ou plusieurs membres du jury sont déjà mobilisés sur ce créneau.',
-            ]);
-        }
 
         $presentation = DB::transaction(function () use ($validated, $projet) {
             $presentation = Presentation::create([

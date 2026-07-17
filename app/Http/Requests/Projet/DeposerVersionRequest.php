@@ -29,4 +29,32 @@ class DeposerVersionRequest extends FormRequest
             'rapport_pdf.max' => 'Le rapport ne doit pas dépasser 20 Mo.',
         ];
     }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $projet = $this->route('projet');
+
+            if ($projet->statut !== 'corrections_demandees') {
+                $validator->errors()->add(
+                    'statut',
+                    'Une nouvelle version ne peut être déposée que si des corrections ont été demandées (statut actuel : '.$projet->statut.').'
+                );
+            }
+        });
+    }
+
+     public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $projet = $this->route('projet');
+
+            if ($projet->statut !== 'corrections_demandees') {
+                $validator->errors()->add(
+                    'statut',
+                    'Une nouvelle version ne peut être déposée que si des corrections ont été demandées (statut actuel : '.$projet->statut.').'
+                );
+            }
+        });
+    }
 }

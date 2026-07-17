@@ -42,4 +42,22 @@ class ModifierUtilisateurRequest extends FormRequest
             'adresse' => ['nullable', 'string', 'max:255'],
         ];
     }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $roleConnecte = $this->user()?->role?->libelle;
+            $utilisateurCible = $this->route('utilisateur');
+            $roleCibleActuel = $utilisateurCible->role?->libelle;
+
+            $rolesReserves = ['administrateur', 'super_administrateur'];
+
+            if (in_array($roleCibleActuel, $rolesReserves, true) && $roleConnecte !== 'super_administrateur') {
+                $validator->errors()->add(
+                    'utilisateur',
+                    'Seul le super administrateur peut modifier un compte administrateur ou super administrateur.'
+                );
+            }
+        });
+    }
 }

@@ -48,4 +48,21 @@ class CreerUtilisateurRequest extends FormRequest
             'email.unique' => 'Cette adresse email est déjà utilisée.',
         ];
     }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $roleConnecte = $this->user()?->role?->libelle;
+            $roleCible = Role::find($this->input('id_role'))?->libelle;
+
+            $rolesReserves = ['administrateur', 'super_administrateur'];
+
+            if (in_array($roleCible, $rolesReserves, true) && $roleConnecte !== 'super_administrateur') {
+                $validator->errors()->add(
+                    'id_role',
+                    'Seul le super administrateur peut créer un compte administrateur ou super administrateur.'
+                );
+            }
+        });
+    }
 }

@@ -23,4 +23,9 @@ class Niveau extends Model
     {
         return $this->hasMany(Promotion::class, 'id_niveau', 'id_niveau');
     }
+
+    public function tarif()
+    {
+        return $this->hasOne(Tarif::class, 'id_niveau', 'id_niveau');
+    }
 }

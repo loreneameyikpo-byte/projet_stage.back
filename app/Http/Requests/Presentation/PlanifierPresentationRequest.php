@@ -32,4 +32,67 @@ class PlanifierPresentationRequest extends FormRequest
             'membres.required' => 'Le jury doit comporter au moins un membre.',
         ];
     }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $projet = Projet::find($this->input('id_projet'));
+
+            if (! $projet) {
+                return; // déjà signalé par la règle exists sur id_projet
+            }
+
+            if ($projet->statut !== 'valide') {
+                $validator->errors()->add(
+                    'id_projet',
+                    'Seul un projet au statut "validé" peut être planifié.'
+                );
+            }
+
+            if ($projet->presentation()->exists()) {
+                $validator->errors()->add(
+                    'id_projet',
+                    'Ce projet a déjà une présentation planifiée.'
+                );
+            }
+
+            $dateP = $this->input('date_presentation');
+            $heureP = $this->input('heure_presentation');
+            $idSalle = $this->input('id_salle');
+
+            if ($dateP && $heureP && $idSalle) {
+                $conflitSalle = Presentation::where('id_salle', $idSalle)
+                    ->where('date_presentation', $dateP)
+                    ->where('heure_presentation', $heureP)
+                    ->exists();
+
+                if ($conflitSalle) {
+                    $validator->errors()->add(
+                        'id_salle',
+                        'Cette salle est déjà réservée sur ce créneau.'
+                    );
+                }
+            }
+
+            $membres = $this->input('membres', []);
+
+            if ($dateP && $heureP && ! empty($membres)) {
+                $idsMembres = collect($membres)->pluck('id_utilisateur');
+
+                $conflitJury = Jury::whereHas('presentation', function ($q) use ($dateP, $heureP) {
+                    $q->where('date_presentation', $dateP)
+                      ->where('heure_presentation', $heureP);
+                })->whereHas('membres', function ($q) use ($idsMembres) {
+                    $q->whereIn('utilisateurs.id_utilisateur', $idsMembres);
+                })->exists();
+
+                if ($conflitJury) {
+                    $validator->errors()->add(
+                        'membres',
+                        'Un ou plusieurs membres du jury sont déjà mobilisés sur ce créneau.'
+                    );
+                }
+            }
+        });
+    }
 }

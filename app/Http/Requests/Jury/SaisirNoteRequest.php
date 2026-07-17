@@ -29,4 +29,19 @@ class SaisirNoteRequest extends FormRequest
             'note.max' => 'La note ne peut pas dépasser 20.',
         ];
     }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $jury = $this->route('jury');
+            $datePresentation = $jury->presentation?->date_presentation;
+
+            if ($datePresentation && $datePresentation->isFuture()) {
+                $validator->errors()->add(
+                    'presentation',
+                    'Impossible de saisir une note avant la date de la soutenance.'
+                );
+            }
+        });
+    }
 }

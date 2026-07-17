@@ -54,4 +54,16 @@ class Projet extends Model
     {
         return $this->hasOne(Presentation::class, 'id_projet', 'id_projet');
     }
+
+    public function paiements()
+    {
+        return $this->hasMany(Paiement::class, 'id_projet', 'id_projet');
+    }
+
+    public function paiementReussi()
+    {
+        return $this->hasOne(Paiement::class, 'id_projet', 'id_projet')
+            ->where('statut', 'reussi')
+            ->latestOfMany();
+    }
 }
