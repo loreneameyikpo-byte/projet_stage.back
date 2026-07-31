@@ -87,4 +87,51 @@ class PresentationController extends Controller
             ),
         ]);
     }
+
+
+    /**
+     * Vérifie si un créneau (salle + date + heure) est disponible,
+     * sans créer la présentation — utilisé par le bouton "Vérifier la disponibilité".
+     */
+    public function verifierDisponibilite(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'date_presentation' => ['required', 'date'],
+            'heure_presentation' => ['required', 'date_format:H:i'],
+            'id_salle' => ['required', 'uuid', 'exists:salles,id_salle'],
+        ]);
+
+        $conflit = Presentation::where('id_salle', $validated['id_salle'])
+            ->where('date_presentation', $validated['date_presentation'])
+            ->where('heure_presentation', $validated['heure_presentation'])
+            ->exists();
+
+        return response()->json([
+            'disponible' => ! $conflit,
+            'message' => $conflit
+                ? 'Cette salle est déjà réservée sur ce créneau.'
+                : 'Ce créneau est disponible.',
+        ]);
+    }
+
+    /**
+     * Annule une soutenance planifiée : supprime la présentation et son jury,
+     * et remet le projet au statut "validé" pour permettre une nouvelle planification.
+     */
+    public function annuler(Presentation $presentation): JsonResponse
+    {
+        if ($presentation->date_presentation->isPast()) {
+            return response()->json([
+                'message' => 'Impossible d\'annuler une soutenance déjà passée.',
+            ], 422);
+        }
+
+        DB::transaction(function () use ($presentation) {
+            $presentation->projet->update(['statut' => 'valide']);
+            $presentation->jury?->delete(); // cascade sur jury_utilisateur
+            $presentation->delete();
+        });
+
+        return response()->json(['message' => 'Soutenance annulée avec succès.']);
+    }
 }

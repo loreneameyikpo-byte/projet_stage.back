@@ -29,6 +29,13 @@ class NiveauController extends Controller
 
     public function destroy(Niveau $niveau): JsonResponse
     {
+        $nbUtilisateurs = $niveau->promotions()->count();
+
+        if ($nbUtilisateurs > 0) {
+            return response()->json([
+                'message' => "Impossible de supprimer ce niveau : il est utilisé par {$nbPromotions} promotion(s).",
+            ], 422);
+        }
         $niveau->delete();
 
         return response()->json(['message' => 'Niveau supprimé avec succès.']);

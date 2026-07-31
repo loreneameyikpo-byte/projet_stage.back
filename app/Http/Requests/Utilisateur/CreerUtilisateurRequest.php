@@ -32,7 +32,7 @@ class CreerUtilisateurRequest extends FormRequest
             'nom' => ['required', 'string', 'max:255'],
             'prenom' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'unique:utilisateurs,email'],
-            'password' => ['required', Password::min(8)],
+           // 'password' => ['required', Password::min(8)],
             'id_role' => ['required', 'uuid', 'exists:roles,id_role'],
             'id_promotion' => ['nullable', 'uuid', 'exists:promotions,id_promotion'],
             'id_filiere' => ['nullable', 'uuid', 'exists:filieres,id_filiere'],

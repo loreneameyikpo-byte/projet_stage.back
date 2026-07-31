@@ -6,6 +6,7 @@ use App\Http\Requests\Projet\AffecterEncadreurRequest;
 use App\Http\Requests\Projet\DeposerVersionRequest;
 use App\Http\Requests\Projet\SoumettreProjetRequest;
 use App\Http\Requests\Projet\ValiderProjetRequest;
+use App\Http\Requests\Projet\SupprimerProjetRequest;
 use App\Http\Resources\ProjetResource;
 use App\Models\Observation;
 use App\Models\Projet;
@@ -25,7 +26,7 @@ class ProjetController extends Controller
         $utilisateur = $request->user();
         $role = $utilisateur->role?->libelle;
 
-        $query = Projet::with(['etudiant', 'encadreur', 'derniereVersion']);
+        $query = Projet::with(['etudiant.promotion.niveau', 'encadreur', 'derniereVersion']);
 
         $query = match ($role) {
             'etudiant' => $query->where('id_utilisateur', $utilisateur->id_utilisateur),
@@ -49,7 +50,7 @@ class ProjetController extends Controller
             $projet = Projet::create([
                 'titre' => $validated['titre'],
                 'description' => $validated['description'],
-                'statut' => 'en_attente_validation',
+                'statut' => 'en_attente',
                 'id_utilisateur' => $request->user()->id_utilisateur,
                 'id_encadreur' => null,
             ]);
@@ -125,7 +126,7 @@ class ProjetController extends Controller
                 'id_projet' => $projet->id_projet,
             ]);
 
-            $projet->update(['statut' => 'en_attente_validation']);
+            $projet->update(['statut' => 'en_attente']);
 
             return $projet;
         });
@@ -154,11 +155,11 @@ class ProjetController extends Controller
             ]);
 
             if ($validated['decision'] === 'valider') {
-                $derniereVersion?->update(['statut_version' => 'validee']);
+                $derniereVersion?->update(['statut_version' => 'valide']);
                 $projet->update(['statut' => 'valide']);
             } else {
-                $derniereVersion?->update(['statut_version' => 'corrections_demandees']);
-                $projet->update(['statut' => 'corrections_demandees']);
+                $derniereVersion?->update(['statut_version' => 'corrections']);
+                $projet->update(['statut' => 'corrections']);
             }
 
             return $projet;
@@ -170,5 +171,18 @@ class ProjetController extends Controller
                 : 'Corrections demandées à l\'étudiant.',
             'projet' => new ProjetResource($projet->load(['derniereVersion', 'observations.auteur'])),
         ]);
+    }
+
+    public function destroy(Projet $projet): JsonResponse
+    {
+        // Supprimer les fichiers PDF associés aux versions du projet
+        foreach ($projet->versions as $version) {
+            Storage::disk('public')->delete($version->rapport_pdf);
+        }
+
+        // Supprimer le projet et ses relations (versions, observations)
+        $projet->delete();
+
+        return response()->json(['message' => 'Projet supprimé avec succès.']);
     }
 }

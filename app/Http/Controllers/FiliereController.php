@@ -29,6 +29,13 @@ class FiliereController extends Controller
 
     public function destroy(Filiere $filiere): JsonResponse
     {
+        $nbUtilisateurs = $filiere->utilisateurs()->count();
+
+        if ($nbUtilisateurs > 0) {
+            return response()->json([
+                'message' => "Impossible de supprimer cette filière : elle est utilisée par {$nbUtilisateurs} étudiant(s).",
+            ], 422);
+        }
         $filiere->delete();
 
         return response()->json(['message' => 'Filière supprimée avec succès.']);

@@ -26,6 +26,6 @@ class Niveau extends Model
 
     public function tarif()
     {
-        return $this->hasOne(Tarif::class, 'id_niveau', 'id_niveau');
+        return $this->hasOne(Tarif::class, 'id_promotion', 'id_niveau');
     }
 }

@@ -24,4 +24,5 @@ class ProjetPolicy
         return $utilisateur->id_utilisateur === $projet->id_utilisateur
             && in_array($projet->statut, ['en_attente', 'corrections'], true);
     }
+
 }

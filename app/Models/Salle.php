@@ -18,6 +18,7 @@ class Salle extends Model
     protected $fillable = [
         'numero',
         'libelle',
+        'capacite',
     ];
 
     public function presentations()

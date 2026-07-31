@@ -29,6 +29,13 @@ class SpecialiteController extends Controller
 
     public function destroy(Specialite $specialite): JsonResponse
     {
+        $nbUtilisateurs = $specialite->utilisateurs()->count();
+
+        if ($nbUtilisateurs > 0) {
+            return response()->json([
+                'message' => "Impossible de supprimer cette spécialité : elle est utilisée par {$nbUtilisateurs} utilisateur(s).",
+            ], 422);
+        }
         $specialite->delete();
 
         return response()->json(['message' => 'Spécialité supprimée avec succès.']);

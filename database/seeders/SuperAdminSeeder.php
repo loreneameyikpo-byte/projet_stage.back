@@ -14,10 +14,10 @@ class SuperAdminSeeder extends Seeder
         $role = Role::where('libelle', 'super_administrateur')->first();
 
         Utilisateur::firstOrCreate(
-            ['email' => 'superadmin@pff.local'],
+            ['email' => 'lorene.ameyikpo@gmail.com'],
             [
-                'nom' => 'Admin',
-                'prenom' => 'Super',
+                'nom' => 'AMEYIKPO',
+                'prenom' => 'Lorene',
                 'mot_de_passe' => Hash::make('password123'), // à changer en prod
                 'id_role' => $role->id_role,
             ]

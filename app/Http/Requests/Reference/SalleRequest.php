@@ -19,6 +19,7 @@ class SalleRequest extends FormRequest
         return [
             'numero' => ['required', 'string', 'max:50'],
             'libelle' => ['nullable', 'string', 'max:255'],
+            'capacite' => ['required', 'integer', 'min:1'],
         ];
     }
     

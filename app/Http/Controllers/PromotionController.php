@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Reference\PromotionRequest;
 use App\Models\Promotion;
+use App\Models\Niveau;
 use Illuminate\Http\JsonResponse;
 
 class PromotionController extends Controller
@@ -17,8 +18,14 @@ class PromotionController extends Controller
                     'annee' => $p->annee,
                     'niveau' => $p->niveau?->libelle,
                     'intitule' => $p->intitule,
+                    'nb_etudiants' => $p->utilisateurs()->count(),
                 ]),
-        ]);
+                'niveaux' => Niveau::orderBy('libelle')->get()
+                    ->map(fn ($n) => [
+                        'id_niveau' => $n->id_niveau,
+                        'libelle' => $n->libelle,
+                    ]),
+       ]);
     }
 
     public function store(PromotionRequest $request): JsonResponse
@@ -37,6 +44,13 @@ class PromotionController extends Controller
 
     public function destroy(Promotion $promotion): JsonResponse
     {
+        $nbEtudiants = $promotion->utilisateurs()->count();
+
+        if ($nbEtudiants > 0) {
+            return response()->json([
+                'message' => "Impossible de supprimer cette promotion : elle est utilisée par {$nbEtudiants} étudiant(s).",
+            ], 422);
+        }
         $promotion->delete();
 
         return response()->json(['message' => 'Promotion supprimée avec succès.']);

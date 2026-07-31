@@ -21,6 +21,7 @@ class Utilisateur extends Authenticatable
         'prenom',
         'email',
         'mot_de_passe',
+        'actif',
         'contacts',
         'adresse',
         'id_role',
@@ -28,6 +29,7 @@ class Utilisateur extends Authenticatable
         'id_filiere',
         'id_specialite',
     ];
+    
 
     protected $hidden = [
         'mot_de_passe',
@@ -38,6 +40,7 @@ class Utilisateur extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'actif' => 'boolean',
         ];
     }
 

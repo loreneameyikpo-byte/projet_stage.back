@@ -6,9 +6,12 @@ use App\Http\Requests\Utilisateur\CreerUtilisateurRequest;
 use App\Http\Requests\Utilisateur\ModifierUtilisateurRequest;
 use App\Http\Resources\UtilisateurResource;
 use App\Models\Utilisateur;
+use App\Mail\CompteCreeMail;
+use Illuminate\Support\Str;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 class UtilisateurController extends Controller
 {
@@ -34,22 +37,28 @@ class UtilisateurController extends Controller
     public function store(CreerUtilisateurRequest $request): JsonResponse
     {
         $validated = $request->validated();
-
+        $motDePasseTemporaire = Str::password(12);
+        
         $utilisateur = Utilisateur::create([
             'nom' => $validated['nom'],
             'prenom' => $validated['prenom'],
             'email' => $validated['email'],
-            'mot_de_passe' => Hash::make($validated['password']),
+            'mot_de_passe' => Hash::make($motDePasseTemporaire),
             'contacts' => $validated['contacts'] ?? null,
             'adresse' => $validated['adresse'] ?? null,
             'id_role' => $validated['id_role'],
             'id_promotion' => $validated['id_promotion'] ?? null,
             'id_filiere' => $validated['id_filiere'] ?? null,
             'id_specialite' => $validated['id_specialite'] ?? null,
+            'actif' => true,
+            'mot_de_passe_a_changer' => true,
         ]);
+
+        Mail::to($utilisateur->email)->send(new CompteCreeMail($motDePasseTemporaire, $utilisateur));
 
         return response()->json([
             'message' => 'Utilisateur créé avec succès.',
+            // 'mot_de_passe_temporaire' => $motDePasseTemporaire,
             'utilisateur' => new UtilisateurResource($utilisateur->load(['role', 'promotion.niveau', 'filiere', 'specialite'])),
         ], 201);
     }
