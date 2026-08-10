@@ -18,19 +18,28 @@ use App\Http\Controllers\AdministrateurController;
 use App\Http\Controllers\StatsAdminController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\StatsEtudiantController;
-
+use App\Http\Controllers\StatsEncadreurController;
+use App\Http\Controllers\StatsJuryController;
+use App\Http\Controllers\ParametreController;
 use Illuminate\Support\Facades\Route;
 
+
+Route::post('/mot-de-passe-oublie', [AuthController::class, 'motDePasseOublie']);
+Route::post('/reinitialiser-mot-de-passe', [AuthController::class, 'reinitialiserMotDePasse']);
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::post('authentification', [SemoaCallBackController::class, 'authentification']);
 Route::any('semoa-callback-url', [SemoaCallBackController::class, 'authentification'])->name('api.semoa.callback');
 Route::post('semoa/create-order-test', [SemoaCallBackController::class, 'createOrder']);
 
+
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::put('/me', [AuthController::class, 'modifierProfil']);
+    Route::put('/me/mot-de-passe', [AuthController::class, 'changerMotDePasse']);
+
 
     //  Projets (UC1 et UC2) 
     Route::get('/projets', [ProjetController::class, 'index']);
@@ -47,6 +56,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/projets/{projet}/valider', [ProjetController::class, 'valider']);
     });
 
+    Route::middleware('role:jury_externe,encadreur')->group(function () {
+    Route::get('/stats-jury/dashboard', [StatsJuryController::class, 'dashboard']);
+    });
+
     // --- Présentations (UC3) ---
     Route::get('/presentations', [PresentationController::class, 'index']);
     Route::get('/presentations/{presentation}', [PresentationController::class, 'show']);
@@ -55,8 +68,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/presentations/{presentation}', [PresentationController::class, 'annuler']);
         Route::post('/presentations/verifier-disponibilite', [PresentationController::class, 'verifierDisponibilite']);
         Route::post('/presentations', [PresentationController::class, 'store']);
+        Route::put('/presentations/{presentation}', [PresentationController::class, 'update']);
         Route::get('/roles', [RoleController::class, 'index']);
         Route::put('/projets/{projet}/affecter-encadreur', [ProjetController::class, 'affecterEncadreur']);
+        Route::patch('/projets/{projet}/statut', [ProjetController::class, 'changerStatut']);
 
     });
 
@@ -73,7 +88,8 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::post('semoa/initiate', [PaiementController::class, 'initiate'])->middleware('auth:sanctum');
-    //  Saisie de la note par le jury 
+    //  Saisie de la note par le jury
+        Route::get('/jury/{jury}', [JuryController::class, 'show']);
     Route::post('/jury/{jury}/note', [JuryController::class, 'saisirNote']);
 
 
@@ -87,6 +103,8 @@ Route::post('semoa/initiate', [PaiementController::class, 'initiate'])->middlewa
         Route::put('/utilisateurs/{utilisateur}', [UtilisateurController::class, 'update']);
         Route::delete('/utilisateurs/{utilisateur}', [UtilisateurController::class, 'destroy']);
         Route::post('/utilisateurs/{utilisateur}/renvoyer-identifiants', [UtilisateurController::class, 'renvoyerIdentifiants']);
+        Route::get('/parametres', [ParametreController::class, 'index']);
+        Route::put('/parametres', [ParametreController::class, 'update']);
 
         Route::apiResource('filieres', FiliereController::class)->except('show');
         Route::apiResource('specialites', SpecialiteController::class)->except('show');

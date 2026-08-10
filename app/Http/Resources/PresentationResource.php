@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Http\Resources\JuryResource;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -18,7 +19,7 @@ class PresentationResource extends JsonResource
             'note_finale' => $this->note_finale,
             'statut' => $this->note_finale !== null
                 ? 'terminee'
-                : ($this->date_presentation?->isPast() ? 'terminee' : 'planifiee'),
+                : ($this->dateHeureComplete()?->isPast() ? 'terminee' : 'planifiee'),
             'etudiant' => [
                 'id' => $this->etudiant?->id_utilisateur,
                 'nom' => $this->etudiant?->nom,
@@ -35,5 +36,16 @@ class PresentationResource extends JsonResource
             ],
             'jury' => new JuryResource($this->whenLoaded('jury')),
         ];
+    }
+
+    private function dateHeureComplete(): ?Carbon
+    {
+        if (! $this->date_presentation || ! $this->heure_presentation) {
+            return null;
+        }
+
+        return Carbon::parse(
+            $this->date_presentation->format('Y-m-d') . ' ' . $this->heure_presentation
+        );
     }
 }

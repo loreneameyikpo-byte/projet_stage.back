@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\NotificationSoutenancePlanifiee;
+use Illuminate\Support\Facades\Mail;
 use App\Http\Requests\Presentation\PlanifierPresentationRequest;
+use App\Http\Requests\Presentation\ModifierPresentationRequest;
 use App\Http\Resources\PresentationResource;
 use App\Models\Jury;
 use App\Models\Presentation;
@@ -70,6 +73,20 @@ class PresentationController extends Controller
 
             return $presentation;
         });
+        $presentation->load(['projet.etudiant', 'projet.encadreur', 'salle', 'jury.membres']);
+
+    Mail::to($presentation->projet->etudiant->email)
+        ->send(new NotificationSoutenancePlanifiee($presentation));
+
+        if ($presentation->projet->encadreur) {
+        Mail::to($presentation->projet->encadreur->email)
+            ->send(new NotificationSoutenancePlanifiee($presentation));
+    }
+
+    foreach ($presentation->jury->membres as $membre) {
+        Mail::to($membre->email)
+            ->send(new NotificationSoutenancePlanifiee($presentation, $membre->pivot->role_jury));
+    }
 
         return response()->json([
             'message' => 'Présentation planifiée avec succès.',
@@ -134,4 +151,34 @@ class PresentationController extends Controller
 
         return response()->json(['message' => 'Soutenance annulée avec succès.']);
     }
+        // Modifier un présentation
+        public function update(ModifierPresentationRequest $request, Presentation $presentation): JsonResponse
+{
+    $validated = $request->validated();
+
+    DB::transaction(function () use ($validated, $presentation) {
+        $presentation->update([
+            'date_presentation' => $validated['date_presentation'],
+            'heure_presentation' => $validated['heure_presentation'],
+            'libelle' => $validated['libelle'] ?? null,
+            'id_salle' => $validated['id_salle'],
+        ]);
+
+        $jury = $presentation->jury;
+        $jury->membres()->detach();
+
+        foreach ($validated['membres'] as $membre) {
+            $jury->membres()->attach($membre['id_utilisateur'], [
+                'role_jury' => $membre['role_jury'],
+            ]);
+        }
+    });
+
+    return response()->json([
+        'message' => 'Soutenance modifiée avec succès.',
+        'presentation' => new PresentationResource(
+            $presentation->load(['etudiant', 'projet', 'salle', 'jury.membres'])
+        ),
+    ]);
+}
 }

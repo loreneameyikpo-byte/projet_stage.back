@@ -8,6 +8,10 @@ use App\Http\Requests\Projet\SoumettreProjetRequest;
 use App\Http\Requests\Projet\ValiderProjetRequest;
 use App\Http\Requests\Projet\SupprimerProjetRequest;
 use App\Http\Resources\ProjetResource;
+use App\Mail\NotificationEncadreurAffecte;
+use App\Mail\NotificationProjetAffecte;
+use App\Mail\NotificationNouvelleVersion;
+use App\Mail\NotificationObservation;
 use App\Models\Observation;
 use App\Models\Projet;
 use App\Models\VersionProjet;
@@ -15,6 +19,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
 
 class ProjetController extends Controller
 {
@@ -98,11 +103,33 @@ class ProjetController extends Controller
             'id_encadreur' => $request->validated('id_encadreur'),
         ]);
 
+        $projet->refresh()->load(['etudiant', 'encadreur']);
+
+    Mail::to($projet->encadreur->email)->send(new NotificationEncadreurAffecte($projet));
+    Mail::to($projet->etudiant->email)->send(new NotificationProjetAffecte($projet));
+
         return response()->json([
             'message' => 'Encadreur affecté avec succès.',
             'projet' => new ProjetResource($projet->fresh(['etudiant', 'encadreur', 'derniereVersion'])),
         ]);
     }
+
+    /**
+ * L'administrateur force le changement de statut d'un projet.
+ */
+public function changerStatut(Request $request, Projet $projet): JsonResponse
+{
+    $request->validate([
+        'statut' => 'required|in:en_attente,corrections,valide,presentation_planifiee,presente',
+    ]);
+
+    $projet->update(['statut' => $request->input('statut')]);
+
+    return response()->json([
+        'message' => 'Statut du projet mis à jour avec succès.',
+        'projet' => new ProjetResource($projet->fresh(['etudiant', 'encadreur', 'derniereVersion'])),
+    ]);
+}
 
 
     /**
@@ -112,12 +139,12 @@ class ProjetController extends Controller
     {
         $validated = $request->validated();
 
-        $projet = DB::transaction(function () use ($validated, $request, $projet) {
+        $version = DB::transaction(function () use ($validated, $request, $projet) {
             $derniereVersion = $projet->versions()->max('numero_version') ?? 0;
 
             $cheminPdf = $request->file('rapport_pdf')->store('rapports', 'public');
 
-            VersionProjet::create([
+           $version = VersionProjet::create([
                 'numero_version' => $derniereVersion + 1,
                 'rapport_pdf' => $cheminPdf,
                 'depot_github' => $validated['depot_github'] ?? $projet->derniereVersion?->depot_github,
@@ -128,9 +155,13 @@ class ProjetController extends Controller
 
             $projet->update(['statut' => 'en_attente']);
 
-            return $projet;
+            return $version;
         });
+        $projet->refresh()->load(['encadreur', 'etudiant']);
 
+    if ($projet->encadreur) {
+        Mail::to($projet->encadreur->email)->send(new NotificationNouvelleVersion($projet, $version));
+    }
         return response()->json([
             'message' => 'Nouvelle version déposée avec succès.',
             'projet' => new ProjetResource($projet->load(['derniereVersion', 'versions'])),
@@ -144,10 +175,10 @@ class ProjetController extends Controller
     {
         $validated = $request->validated();
 
-        $projet = DB::transaction(function () use ($validated, $request, $projet) {
+        $observation = DB::transaction(function () use ($validated, $request, $projet) {
             $derniereVersion = $projet->derniereVersion;
 
-            Observation::create([
+           $observation = Observation::create([
                 'contenu' => $validated['observation'],
                 'date' => now()->toDateString(),
                 'id_utilisateur' => $request->user()->id_utilisateur,
@@ -155,15 +186,21 @@ class ProjetController extends Controller
             ]);
 
             if ($validated['decision'] === 'valider') {
-                $derniereVersion?->update(['statut_version' => 'valide']);
+                $derniereVersion?->update(['statut_version' => 'validee']);
                 $projet->update(['statut' => 'valide']);
             } else {
-                $derniereVersion?->update(['statut_version' => 'corrections']);
+                $derniereVersion?->update(['statut_version' => 'corrections_demandees']);
                 $projet->update(['statut' => 'corrections']);
             }
 
-            return $projet;
+            return $observation;
         });
+
+        $projet->refresh()->load(['etudiant', 'encadreur']);
+
+    Mail::to($projet->etudiant->email)->send(
+        new NotificationObservation($projet, $observation, $validated['decision'])
+    );
 
         return response()->json([
             'message' => $validated['decision'] === 'valider'

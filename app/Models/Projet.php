@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Mail\NotificationChangementStatut;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -66,4 +68,22 @@ class Projet extends Model
             ->where('statut', 'reussi')
             ->latestOfMany();
     }
+    protected static function booted(): void
+{
+    static::updated(function (Projet $projet) {
+        if ($projet->wasChanged('statut')) {
+            $projet->loadMissing('etudiant');
+
+            if ($projet->etudiant) {
+                Mail::to($projet->etudiant->email)->send(
+                    new NotificationChangementStatut(
+                        $projet,
+                        $projet->getOriginal('statut'),
+                        $projet->statut
+                    )
+                );
+            }
+        }
+    });
+}
 }

@@ -13,37 +13,32 @@
         <tr>
             <td style="padding: 32px;">
                 <h1 style="font-size: 18px; color: #1F2937; margin: 0 0 16px;">
-                    Bonjour {{ $utilisateur->prenom }},
+                    Bonjour {{ $projet->etudiant->prenom }},
                 </h1>
 
                 <p style="font-size: 14px; color: #1F2937; line-height: 1.6; margin: 0 0 16px;">
-                    Un compte vient d'être créé pour vous sur la plateforme Projetis, en tant que
-                    <strong>{{ $utilisateur->role->libelle }}</strong>.
-                </p>
-
-                <p style="font-size: 14px; color: #1F2937; line-height: 1.6; margin: 0 0 8px;">
-                    Voici vos identifiants de connexion :
+                    Un encadreur a été désigné pour votre projet :
                 </p>
 
                 <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #F6FAF9; border-radius: 6px; margin-bottom: 20px;">
                     <tr>
                         <td style="padding: 16px;">
-                            <p style="font-size: 13px; color: #64748B; margin: 0 0 4px;">Email</p>
-                            <p style="font-size: 14px; color: #1F2937; margin: 0 0 12px; font-weight: 600;">{{ $utilisateur->email }}</p>
+                            <p style="font-size: 13px; color: #64748B; margin: 0 0 4px;">Projet</p>
+                            <p style="font-size: 14px; color: #1F2937; margin: 0 0 12px; font-weight: 600;">{{ $projet->titre }}</p>
 
-                            <p style="font-size: 13px; color: #64748B; margin: 0 0 4px;">Mot de passe temporaire</p>
-                            <p style="font-size: 14px; color: #1F2937; margin: 0; font-weight: 600; font-family: monospace;">{{ $motDePasseTemporaire }}</p>
+                            <p style="font-size: 13px; color: #64748B; margin: 0 0 4px;">Encadreur</p>
+                            <p style="font-size: 14px; color: #1F2937; margin: 0; font-weight: 600;">{{ $projet->encadreur->prenom }} {{ $projet->encadreur->nom }}</p>
                         </td>
                     </tr>
                 </table>
 
                 <p style="font-size: 13px; color: #64748B; line-height: 1.6; margin: 0 0 24px;">
-                    Pour des raisons de sécurité, il vous sera demandé de changer ce mot de passe dès votre première connexion.
+                    Vous pouvez suivre l'avancement depuis votre espace étudiant.
                 </p>
 
                 <a href="{{ config('app.frontend_url', 'http://localhost:3000') }}/login"
                    style="display: inline-block; background-color: #0F6E56; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 6px;">
-                    Se connecter
+                    Accéder à la plateforme
                 </a>
             </td>
         </tr>

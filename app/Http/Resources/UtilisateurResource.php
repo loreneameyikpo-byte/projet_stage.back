@@ -25,6 +25,7 @@ class UtilisateurResource extends JsonResource
             'filiere' => $this->filiere?->libelle,
             'specialite' => $this->specialite?->libelle,
             'actif' => $this->actif,
+            'mot_de_passe_a_changer' => $this->mot_de_passe_a_changer,           
             'created_at' => $this->created_at?->format('Y-m-d'),
         ];
     }

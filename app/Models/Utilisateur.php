@@ -5,11 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Auth\Passwords\CanResetPassword;
+use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
+use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-class Utilisateur extends Authenticatable
+class Utilisateur extends Authenticatable implements CanResetPasswordContract
 {
-    use HasFactory, HasApiTokens, HasUuids;
+    use HasFactory, HasApiTokens, HasUuids, CanResetPassword, Notifiable;
 
     protected $table = 'utilisateurs';
     protected $primaryKey = 'id_utilisateur';
@@ -22,6 +25,7 @@ class Utilisateur extends Authenticatable
         'email',
         'mot_de_passe',
         'actif',
+        'mot_de_passe_a_changer',
         'contacts',
         'adresse',
         'id_role',
@@ -41,6 +45,8 @@ class Utilisateur extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'actif' => 'boolean',
+            'mot_de_passe_a_changer' => 'boolean',
+
         ];
     }
 

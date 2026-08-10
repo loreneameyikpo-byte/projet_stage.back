@@ -31,15 +31,6 @@ class AffecterEncadreurRequest extends FormRequest
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
-            $projet = $this->route('projet');
-
-            if (! $projet->paiementReussi()->exists()) {
-                $validator->errors()->add(
-                    'paiement',
-                    'Les frais d\'encadrement doivent être réglés avant l\'affectation d\'un encadreur.'
-                );
-            }
-
             $utilisateur = \App\Models\Utilisateur::find($this->input('id_encadreur'));
 
             if ($utilisateur && $utilisateur->role?->libelle !== 'encadreur') {

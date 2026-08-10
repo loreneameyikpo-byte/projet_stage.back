@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Auth\ChangerMotDePasseRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Resources\UtilisateurResource;
 use App\Models\Utilisateur;
@@ -9,6 +10,12 @@ use App\Http\Requests\Auth\ModifierProfilRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
+use App\Mail\NotificationMotDePasseReinitialise;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Auth\Events\PasswordReset;
+
 
 class AuthController extends Controller
 {
@@ -70,4 +77,77 @@ class AuthController extends Controller
             'utilisateur' => new UtilisateurResource($utilisateur->fresh(['role', 'promotion.niveau', 'filiere', 'specialite'])),
         ]);
     }
+
+    /**
+     * Changement de mot de passe — utilisé notamment pour forcer le changement
+     * du mot de passe temporaire à la première connexion.
+     */
+    public function changerMotDePasse(ChangerMotDePasseRequest $request): JsonResponse
+    {
+        $utilisateur = $request->user();
+
+        $utilisateur->update([
+            'mot_de_passe' => Hash::make($request->validated('mot_de_passe')),
+            'mot_de_passe_a_changer' => false,
+        ]);
+
+        return response()->json([
+            'message' => 'Mot de passe modifié avec succès.',
+            'utilisateur' => new UtilisateurResource($utilisateur->fresh(['role', 'promotion.niveau', 'filiere', 'specialite'])),
+        ]);
+    }
+    // quand l'utilisateur oublie son mot de passe
+    public function motDePasseOublie(Request $request): JsonResponse
+{
+    $request->validate(['email' => 'required|email']);
+
+    $status = Password::sendResetLink(
+        $request->only('email')
+    );
+
+    if ($status === Password::RESET_LINK_SENT) {
+        return response()->json([
+            'message' => 'Un lien de réinitialisation a été envoyé à votre adresse email.',
+        ]);
+    }
+
+    return response()->json([
+        'message' => 'Impossible d\'envoyer le lien de réinitialisation.',
+    ], 422);
+}
+
+    public function reinitialiserMotDePasse(Request $request): JsonResponse
+{
+    $request->validate([
+        'token' => 'required',
+        'email' => 'required|email',
+        'password' => 'required|min:8|confirmed',
+    ]);
+
+    $status = Password::reset(
+        $request->only('email', 'password', 'password_confirmation', 'token'),
+        function ($utilisateur, $password) {
+            $utilisateur->forceFill([
+                'password' => Hash::make($password),
+            ])->save();
+
+            event(new PasswordReset($utilisateur));
+
+            Mail::to($utilisateur->email)->send(
+                new NotificationMotDePasseReinitialise($utilisateur, $password)
+            );
+        }
+    );
+
+    if ($status === Password::PASSWORD_RESET) {
+        return response()->json([
+            'message' => 'Mot de passe réinitialisé avec succès.',
+        ]);
+    }
+
+    return response()->json([
+        'message' => 'Le lien de réinitialisation est invalide ou a expiré.',
+    ], 422);
+}
+
 }

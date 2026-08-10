@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
             FiliereSeeder::class,
             SpecialiteSeeder::class,
             SuperAdminSeeder::class,
+            ParametreSeeder::class,
         ]);
     }
 }

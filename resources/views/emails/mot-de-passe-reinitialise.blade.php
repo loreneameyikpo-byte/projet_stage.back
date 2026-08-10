@@ -17,12 +17,7 @@
                 </h1>
 
                 <p style="font-size: 14px; color: #1F2937; line-height: 1.6; margin: 0 0 16px;">
-                    Un compte vient d'être créé pour vous sur la plateforme Projetis, en tant que
-                    <strong>{{ $utilisateur->role->libelle }}</strong>.
-                </p>
-
-                <p style="font-size: 14px; color: #1F2937; line-height: 1.6; margin: 0 0 8px;">
-                    Voici vos identifiants de connexion :
+                    Votre mot de passe vient d'être réinitialisé avec succès. Voici votre nouveau mot de passe :
                 </p>
 
                 <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #F6FAF9; border-radius: 6px; margin-bottom: 20px;">
@@ -31,14 +26,14 @@
                             <p style="font-size: 13px; color: #64748B; margin: 0 0 4px;">Email</p>
                             <p style="font-size: 14px; color: #1F2937; margin: 0 0 12px; font-weight: 600;">{{ $utilisateur->email }}</p>
 
-                            <p style="font-size: 13px; color: #64748B; margin: 0 0 4px;">Mot de passe temporaire</p>
-                            <p style="font-size: 14px; color: #1F2937; margin: 0; font-weight: 600; font-family: monospace;">{{ $motDePasseTemporaire }}</p>
+                            <p style="font-size: 13px; color: #64748B; margin: 0 0 4px;">Nouveau mot de passe</p>
+                            <p style="font-size: 14px; color: #1F2937; margin: 0; font-weight: 600; font-family: monospace;">{{ $nouveauMotDePasse }}</p>
                         </td>
                     </tr>
                 </table>
 
                 <p style="font-size: 13px; color: #64748B; line-height: 1.6; margin: 0 0 24px;">
-                    Pour des raisons de sécurité, il vous sera demandé de changer ce mot de passe dès votre première connexion.
+                    Si vous n'êtes pas à l'origine de cette réinitialisation, contactez immédiatement un administrateur.
                 </p>
 
                 <a href="{{ config('app.frontend_url', 'http://localhost:3000') }}/login"

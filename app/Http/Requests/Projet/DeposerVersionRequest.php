@@ -10,8 +10,17 @@ class DeposerVersionRequest extends FormRequest
     {
         $projet = $this->route('projet');
 
+        \Log::info('DEBUG authorize', [
+        'user_id' => $this->user()?->id_utilisateur,
+        'projet_id_utilisateur' => $projet->id_utilisateur,
+        'projet_statut' => $projet->statut,
+        'match_user' => $this->user()?->id_utilisateur === $projet->id_utilisateur,
+        'match_statut' => $projet->statut === 'corrections',
+    ]);
+
+
         return $this->user()?->id_utilisateur === $projet->id_utilisateur
-            && $projet->statut === 'corrections_demandees';
+            && $projet->statut === 'corrections';
     }
 
     public function rules(): array
@@ -30,26 +39,12 @@ class DeposerVersionRequest extends FormRequest
         ];
     }
 
-    public function withValidator($validator)
-    {
-        $validator->after(function ($validator) {
-            $projet = $this->route('projet');
-
-            if ($projet->statut !== 'corrections_demandees') {
-                $validator->errors()->add(
-                    'statut',
-                    'Une nouvelle version ne peut être déposée que si des corrections ont été demandées (statut actuel : '.$projet->statut.').'
-                );
-            }
-        });
-    }
-
      public function withValidator($validator)
     {
         $validator->after(function ($validator) {
             $projet = $this->route('projet');
 
-            if ($projet->statut !== 'corrections_demandees') {
+            if ($projet->statut !== 'corrections') {
                 $validator->errors()->add(
                     'statut',
                     'Une nouvelle version ne peut être déposée que si des corrections ont été demandées (statut actuel : '.$projet->statut.').'
