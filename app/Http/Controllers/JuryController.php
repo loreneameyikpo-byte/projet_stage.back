@@ -20,9 +20,14 @@ class JuryController extends Controller
     public function show(Request $request, Jury $jury): JsonResponse
     {
         $utilisateur = $request->user();
- 
-        $jury->load(['presentation.projet.etudiant', 'presentation.salle', 'membres']);
- 
+
+        $jury->load([
+            'presentation.projet.etudiant.promotion',
+            'presentation.projet.etudiant.specialite',
+            'presentation.salle',
+            'membres',
+        ]);
+
         $monPivot = $jury->membres->firstWhere('id_utilisateur', $utilisateur->id_utilisateur);
         abort_unless($monPivot !== null, 403, "Vous ne faites pas partie de ce jury.");
  

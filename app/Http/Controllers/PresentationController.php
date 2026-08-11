@@ -10,6 +10,7 @@ use App\Http\Resources\PresentationResource;
 use App\Models\Jury;
 use App\Models\Presentation;
 use App\Models\Projet;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -49,30 +50,40 @@ class PresentationController extends Controller
         $validated = $request->validated();
         $projet = Projet::findOrFail($validated['id_projet']);
 
-        $presentation = DB::transaction(function () use ($validated, $projet) {
-            $presentation = Presentation::create([
-                'date_presentation' => $validated['date_presentation'],
-                'heure_presentation' => $validated['heure_presentation'],
-                'libelle' => $validated['libelle'] ?? null,
-                'id_utilisateur' => $projet->id_utilisateur,
-                'id_projet' => $projet->id_projet,
-                'id_salle' => $validated['id_salle'],
-            ]);
-
-            $jury = Jury::create([
-                'id_presentation' => $presentation->id_presentation,
-            ]);
-
-            foreach ($validated['membres'] as $membre) {
-                $jury->membres()->attach($membre['id_utilisateur'], [
-                    'role_jury' => $membre['role_jury'],
+        try {
+            $presentation = DB::transaction(function () use ($validated, $projet) {
+                $presentation = Presentation::create([
+                    'date_presentation' => $validated['date_presentation'],
+                    'heure_presentation' => $validated['heure_presentation'],
+                    'libelle' => $validated['libelle'] ?? null,
+                    'id_utilisateur' => $projet->id_utilisateur,
+                    'id_projet' => $projet->id_projet,
+                    'id_salle' => $validated['id_salle'],
                 ]);
+
+                $jury = Jury::create([
+                    'id_presentation' => $presentation->id_presentation,
+                ]);
+
+                foreach ($validated['membres'] as $membre) {
+                    $jury->membres()->attach($membre['id_utilisateur'], [
+                        'role_jury' => $membre['role_jury'],
+                    ]);
+                }
+
+                $projet->update(['statut' => 'presentation_planifiee']);
+
+                return $presentation;
+            });
+        } catch (QueryException $e) {
+            if ((string) $e->getCode() === '23000') {
+                return response()->json([
+                    'message' => "Un même membre ne peut pas occuper plusieurs rôles dans le jury. Merci de vérifier la composition du jury.",
+                ], 422);
             }
+            throw $e;
+        }
 
-            $projet->update(['statut' => 'presentation_planifiee']);
-
-            return $presentation;
-        });
         $presentation->load(['projet.etudiant', 'projet.encadreur', 'salle', 'jury.membres']);
 
     Mail::to($presentation->projet->etudiant->email)
@@ -156,23 +167,32 @@ class PresentationController extends Controller
 {
     $validated = $request->validated();
 
-    DB::transaction(function () use ($validated, $presentation) {
-        $presentation->update([
-            'date_presentation' => $validated['date_presentation'],
-            'heure_presentation' => $validated['heure_presentation'],
-            'libelle' => $validated['libelle'] ?? null,
-            'id_salle' => $validated['id_salle'],
-        ]);
-
-        $jury = $presentation->jury;
-        $jury->membres()->detach();
-
-        foreach ($validated['membres'] as $membre) {
-            $jury->membres()->attach($membre['id_utilisateur'], [
-                'role_jury' => $membre['role_jury'],
+    try {
+        DB::transaction(function () use ($validated, $presentation) {
+            $presentation->update([
+                'date_presentation' => $validated['date_presentation'],
+                'heure_presentation' => $validated['heure_presentation'],
+                'libelle' => $validated['libelle'] ?? null,
+                'id_salle' => $validated['id_salle'],
             ]);
+
+            $jury = $presentation->jury;
+            $jury->membres()->detach();
+
+            foreach ($validated['membres'] as $membre) {
+                $jury->membres()->attach($membre['id_utilisateur'], [
+                    'role_jury' => $membre['role_jury'],
+                ]);
+            }
+        });
+    } catch (QueryException $e) {
+        if ((string) $e->getCode() === '23000') {
+            return response()->json([
+                'message' => "Un même membre ne peut pas occuper plusieurs rôles dans le jury. Merci de vérifier la composition du jury.",
+            ], 422);
         }
-    });
+        throw $e;
+    }
 
     return response()->json([
         'message' => 'Soutenance modifiée avec succès.',
