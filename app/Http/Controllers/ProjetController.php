@@ -15,6 +15,7 @@ use App\Mail\NotificationObservation;
 use App\Models\Observation;
 use App\Models\Projet;
 use App\Models\VersionProjet;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -74,6 +75,12 @@ class ProjetController extends Controller
             return $projet;
         });
 
+        NotificationService::notifierSuperAdmins(
+            'projet_cree',
+            "Nouveau projet soumis : « {$projet->titre} » par {$request->user()->prenom} {$request->user()->nom}.",
+            '/admin/projets'
+        );
+
         return response()->json([
             'message' => 'Projet soumis avec succès.',
             'projet' => new ProjetResource($projet->load(['etudiant', 'derniereVersion'])),
@@ -108,6 +115,12 @@ class ProjetController extends Controller
     Mail::to($projet->encadreur->email)->send(new NotificationEncadreurAffecte($projet));
     Mail::to($projet->etudiant->email)->send(new NotificationProjetAffecte($projet));
 
+    NotificationService::notifierSuperAdmins(
+        'encadreur_affecte',
+        "{$projet->encadreur->prenom} {$projet->encadreur->nom} a été affecté(e) comme encadreur du projet « {$projet->titre} ».",
+        '/admin/projets'
+    );
+
         return response()->json([
             'message' => 'Encadreur affecté avec succès.',
             'projet' => new ProjetResource($projet->fresh(['etudiant', 'encadreur', 'derniereVersion'])),
@@ -124,6 +137,12 @@ public function changerStatut(Request $request, Projet $projet): JsonResponse
     ]);
 
     $projet->update(['statut' => $request->input('statut')]);
+
+    NotificationService::notifierSuperAdmins(
+        'statut_change',
+        "Le statut du projet « {$projet->titre} » a été changé en « {$request->input('statut')} ».",
+        '/admin/projets'
+    );
 
     return response()->json([
         'message' => 'Statut du projet mis à jour avec succès.',
@@ -200,6 +219,14 @@ public function changerStatut(Request $request, Projet $projet): JsonResponse
 
     Mail::to($projet->etudiant->email)->send(
         new NotificationObservation($projet, $observation, $validated['decision'])
+    );
+
+    NotificationService::notifierSuperAdmins(
+        'statut_change',
+        "{$request->user()->prenom} {$request->user()->nom} a " .
+            ($validated['decision'] === 'valider' ? 'validé' : 'demandé des corrections pour') .
+            " le projet « {$projet->titre} ».",
+        '/admin/projets'
     );
 
         return response()->json([

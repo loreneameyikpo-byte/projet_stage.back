@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Mail\NotificationSoutenancePlanifiee;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\Mail;
 use App\Http\Requests\Presentation\PlanifierPresentationRequest;
 use App\Http\Requests\Presentation\ModifierPresentationRequest;
+use App\Mail\NotificationSoutenanceModifiée;
+use App\Mail\NotificationSoutenanceAnnulée;
 use App\Http\Resources\PresentationResource;
 use App\Models\Jury;
 use App\Models\Presentation;
@@ -99,6 +102,12 @@ class PresentationController extends Controller
             ->send(new NotificationSoutenancePlanifiee($presentation, $membre->pivot->role_jury));
     }
 
+        NotificationService::notifierSuperAdmins(
+            'soutenance_planifiee',
+            "Une soutenance a été planifiée pour « {$presentation->projet->titre} » ({$presentation->projet->etudiant->prenom} {$presentation->projet->etudiant->nom}), le {$presentation->date_presentation->format('d/m/Y')} à {$presentation->heure_presentation}.",
+            '/admin/presentations'
+        );
+
         return response()->json([
             'message' => 'Présentation planifiée avec succès.',
             'presentation' => new PresentationResource(
@@ -160,6 +169,29 @@ class PresentationController extends Controller
             $presentation->delete();
         });
 
+        $presentation->load(['etudiant', 'projet.encadreur', 'jury.membres']);
+
+        $donnees = [
+            'titre_projet' => $presentation->projet->titre,
+            'etudiant' => trim("{$presentation->etudiant?->prenom} {$presentation->etudiant?->nom}"),
+            'date_presentation' => $presentation->date_presentation->format('d/m/Y'),
+            'heure_presentation' => $presentation->heure_presentation,
+        ];
+
+        $acteurs = $this->acteursDeLaPresentation($presentation);
+
+        DB::transaction(function () use ($presentation) {
+            $presentation->projet->update(['statut' => 'valide']);
+            $presentation->jury?->delete();
+            $presentation->delete();
+        });
+
+        foreach ($acteurs as $acteur) {
+            Mail::to($acteur->email)->send(
+                new SoutenanceAnnuleeMail($donnees, trim("{$acteur->prenom} {$acteur->nom}"))
+            );
+        }
+
         return response()->json(['message' => 'Soutenance annulée avec succès.']);
     }
         // Modifier un présentation
@@ -193,9 +225,15 @@ class PresentationController extends Controller
         }
         throw $e;
     }
+        $presentation = $presentation->fresh(['etudiant', 'projet.encadreur', 'salle', 'jury.membres']);
 
+        foreach ($this->acteursDeLaPresentation($presentation) as $acteur) {
+            Mail::to($acteur->email)->send(
+                new SoutenanceModifieeMail($presentation, trim("{$acteur->prenom} {$acteur->nom}"))
+            );
+        }
     return response()->json([
-        'message' => 'Soutenance modifiée avec succès.',
+        'message' => 'Soutenance modifiée avec succès.Les acteurs concernés ont été notifiés',
         'presentation' => new PresentationResource(
             $presentation->load(['etudiant', 'projet', 'salle', 'jury.membres'])
         ),

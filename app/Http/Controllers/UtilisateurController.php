@@ -7,6 +7,7 @@ use App\Http\Requests\Utilisateur\ModifierUtilisateurRequest;
 use App\Http\Resources\UtilisateurResource;
 use App\Models\Utilisateur;
 use App\Mail\CompteCreeMail;
+use App\Services\NotificationService;
 use Illuminate\Support\Str;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

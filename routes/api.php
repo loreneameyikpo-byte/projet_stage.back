@@ -18,6 +18,7 @@ use App\Http\Controllers\AdministrateurController;
 use App\Http\Controllers\StatsAdminController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\StatsEtudiantController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\StatsEncadreurController;
 use App\Http\Controllers\StatsJuryController;
 use App\Http\Controllers\ParametreController;
@@ -39,7 +40,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::put('/me', [AuthController::class, 'modifierProfil']);
     Route::put('/me/mot-de-passe', [AuthController::class, 'changerMotDePasse']);
-
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::post('/notifications/{id}/marquer-lu', [NotificationController::class, 'marquerLu']);
+    Route::post('/notifications/marquer-tout-lu', [NotificationController::class, 'marquerToutLu']);
 
     //  Projets (UC1 et UC2) 
     Route::get('/projets', [ProjetController::class, 'index']);

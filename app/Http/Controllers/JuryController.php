@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Jury\SaisirNoteRequest;
 use App\Http\Resources\JuryResource;
 use App\Models\Jury;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -84,8 +85,16 @@ class JuryController extends Controller
 
             if ($noteFinale !== null) {
                 $jury->presentation->update(['note_finale' => $noteFinale]);
+                $jury->presentation->projet?->update(['statut' => 'presente']);
             }
         });
+
+        $jury->load('presentation.projet.etudiant');
+        NotificationService::notifierSuperAdmins(
+            'note_saisie',
+            "{$utilisateur->prenom} {$utilisateur->nom} a saisi une note pour la soutenance de {$jury->presentation?->projet?->etudiant?->prenom} {$jury->presentation?->projet?->etudiant?->nom}.",
+            '/admin/presentations'
+        );
 
         return response()->json([
             'message' => 'Note enregistrée avec succès.',

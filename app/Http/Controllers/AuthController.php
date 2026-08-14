@@ -15,6 +15,7 @@ use Illuminate\Support\Str;
 use App\Mail\NotificationMotDePasseReinitialise;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Support\Facades\RateLimiter;
 
 
 class AuthController extends Controller
@@ -23,14 +24,38 @@ class AuthController extends Controller
     {
         $credentials = $request->validated();
 
+        // Limitation des tentatives : 3 essais max par email, blocage
+        // temporaire de 15 minutes en cas de dépassement.
+        $cleLimitation = 'connexion:' . Str::lower($credentials['email']);
+        $tentativesMax = 3;
+        $dureeBlocageSecondes = 15 * 60;
+
+        if (RateLimiter::tooManyAttempts($cleLimitation, $tentativesMax)) {
+            $secondesRestantes = RateLimiter::availableIn($cleLimitation);
+            $minutesRestantes = (int) ceil($secondesRestantes / 60);
+
+            return response()->json([
+                'message' => "Trop de tentatives échouées pour cette adresse email. Veuillez réessayer dans {$minutesRestantes} minute" . ($minutesRestantes > 1 ? 's' : '') . '.',
+            ], 429);
+        }
+
         $utilisateur = Utilisateur::where('email', $credentials['email'])->first();
 
         if (! $utilisateur || ! Hash::check($credentials['password'], $utilisateur->mot_de_passe)) {
+            RateLimiter::hit($cleLimitation, $dureeBlocageSecondes);
+
+            $tentativesRestantes = max(0, $tentativesMax - RateLimiter::attempts($cleLimitation));
+
             return response()->json([
-                'message' => 'Identifiants invalides.',
+                'message' => $tentativesRestantes > 0
+                    ? "Identifiants invalides. Il vous reste {$tentativesRestantes} tentative" . ($tentativesRestantes > 1 ? 's' : '') . ' avant blocage temporaire.'
+                    : 'Identifiants invalides. Cette adresse email est temporairement bloquée suite à plusieurs échecs.',
             ], 401);
         }
-        
+
+        // Connexion réussie : on efface le compteur de tentatives échouées.
+        RateLimiter::clear($cleLimitation);
+
         if (! $utilisateur->actif) {
             return response()->json([
                 'message' => 'Ce compte a été désactivé. Contactez un administrateur.',
