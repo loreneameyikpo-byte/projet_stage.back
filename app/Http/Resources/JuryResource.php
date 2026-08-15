@@ -17,6 +17,7 @@ class JuryResource extends JsonResource
                 'prenom' => $membre->prenom,
                 'role_jury' => $membre->pivot->role_jury,
                 'note_saisie' => $membre->pivot->note_saisie,
+                'commentaire' => $membre->pivot->commentaire,
             ]),
         ];
     }

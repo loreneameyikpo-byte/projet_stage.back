@@ -62,6 +62,7 @@ class JuryController extends Controller
                     'prenom' => $m->prenom,
                     'role_jury' => $m->pivot->role_jury,
                     'note_saisie' => $m->pivot->note_saisie,
+                    'commentaire' => $m->pivot->commentaire,
                     'est_utilisateur_courant' => $m->id_utilisateur === $utilisateur->id_utilisateur,
                 ]),
             ],
@@ -79,6 +80,7 @@ class JuryController extends Controller
         DB::transaction(function () use ($jury, $utilisateur, $validated) {
             $jury->membres()->updateExistingPivot($utilisateur->id_utilisateur, [
                 'note_saisie' => $validated['note'],
+                'commentaire' => $validated['commentaire'],
             ]);
 
             $noteFinale = $jury->calculerNoteFinale();

@@ -30,6 +30,7 @@ class StatsJuryController extends Controller
                 'salle' => $j->presentation?->salle?->numero,
                 'role_jury' => $j->pivot->role_jury,
                 'note_saisie' => $j->pivot->note_saisie,
+                'commentaire' => $j->pivot->commentaire,
             ])->values(),
         ]);
     }

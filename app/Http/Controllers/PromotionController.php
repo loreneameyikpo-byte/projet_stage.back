@@ -12,11 +12,14 @@ class PromotionController extends Controller
     public function index(): JsonResponse
     {
         return response()->json([
-            'promotions' => Promotion::with('niveau')->orderByDesc('annee')->get()
+            'promotions' => Promotion::with('niveau')->orderByDesc('annee_debut')->get()
                 ->map(fn ($p) => [
                     'id' => $p->id_promotion,
-                    'annee' => $p->annee,
+                    'libelle' => $p->libelle,
+                    'annee_debut' => $p->annee_debut,
+                    'annee_fin' => $p->annee_fin,
                     'niveau' => $p->niveau?->libelle,
+                    'id_niveau' => $p->id_niveau,
                     'intitule' => $p->intitule,
                     'nb_etudiants' => $p->utilisateurs()->count(),
                 ]),

@@ -31,7 +31,7 @@ class Jury extends Model
             'jury_utilisateur',
             'id_jury',
             'id_utilisateur'
-        )->withPivot('role_jury', 'note_saisie');
+        )->withPivot('role_jury', 'note_saisie', 'commentaire');
     }
 
     public function toutesLesNotesSaisies(): bool

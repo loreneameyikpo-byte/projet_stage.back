@@ -17,9 +17,19 @@ class Promotion extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'annee',
+        'libelle',
+        'annee_debut',
+        'annee_fin',
         'id_niveau',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'annee_debut' => 'integer',
+            'annee_fin' => 'integer',
+        ];
+    }
 
     public function niveau()
     {
@@ -34,7 +44,20 @@ class Promotion extends Model
     protected function intitule(): Attribute
     {
         return Attribute::make(
-            get: fn () => trim("{$this->niveau?->libelle} {$this->annee}")
+            get: fn () => trim("{$this->niveau?->libelle} {$this->libelle}")
+        );
+    }
+
+    /**
+     * Durée de la promotion en années (simple soustraction, puisqu'on
+     * travaille désormais avec des années entières et non des dates).
+     */
+    protected function dureeAnnees(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => ($this->annee_debut !== null && $this->annee_fin !== null)
+                ? $this->annee_fin - $this->annee_debut
+                : null
         );
     }
 }

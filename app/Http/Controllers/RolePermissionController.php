@@ -10,16 +10,14 @@ use Illuminate\Http\Request;
 class RolePermissionController extends Controller
 {
     /**
-     * Matrice complète : toutes les permissions, avec pour chaque rôle géré
-     * (administrateur, super_administrateur) la liste des codes activés.
+     * Matrice complète : toutes les permissions, avec pour chaque rôle de
+     * la plateforme la liste des codes activés.
      */
     public function index(): JsonResponse
     {
         $permissions = Permission::orderBy('id_permission')->get(['id_permission', 'code', 'libelle', 'description']);
 
-        $rolesGeres = Role::whereIn('libelle', ['administrateur', 'super_administrateur'])
-            ->with('permissions:id_permission')
-            ->get();
+        $rolesGeres = Role::with('permissions:id_permission')->get();
 
         $matrice = $rolesGeres->mapWithKeys(fn ($role) => [
             $role->libelle => $role->permissions->pluck('id_permission'),
@@ -37,10 +35,6 @@ class RolePermissionController extends Controller
      */
     public function update(Request $request, Role $role): JsonResponse
     {
-        if (! in_array($role->libelle, ['administrateur', 'super_administrateur'], true)) {
-            return response()->json(['message' => 'Ce rôle n\'est pas configurable ici.'], 422);
-        }
-
         $validated = $request->validate([
             'permission_ids' => ['required', 'array'],
             'permission_ids.*' => ['uuid', 'exists:permissions,id_permission'],

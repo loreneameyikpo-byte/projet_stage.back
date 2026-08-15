@@ -108,7 +108,7 @@ class Utilisateur extends Authenticatable implements CanResetPasswordContract
             'jury_utilisateur',
             'id_utilisateur',
             'id_jury'
-        )->withPivot('role_jury', 'note_saisie');
+        )->withPivot('role_jury', 'note_saisie', 'commentaire');
     }
 
     public function hasPermission(string $code): bool

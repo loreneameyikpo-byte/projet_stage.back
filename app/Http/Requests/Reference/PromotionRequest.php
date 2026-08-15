@@ -1,5 +1,5 @@
 <?php
- 
+
 namespace App\Http\Requests\Reference;
 
 use Illuminate\Foundation\Http\FormRequest;
@@ -8,43 +8,52 @@ class PromotionRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return in_array($this->user()?->role?->libelle, ['administrateur', 'super_administrateur'], true);
+        return true;
     }
 
     public function rules(): array
     {
         return [
-            'annee' => ['required', 'string', 'regex:/^\d{4}-\d{4}$/', 'max:9'],
+            'libelle' => ['required', 'string', 'max:255'],
             'id_niveau' => ['required', 'uuid', 'exists:niveaux,id_niveau'],
+            'annee_debut' => ['required', 'integer', 'min:2000', 'max:2100'],
+            'annee_fin' => ['required', 'integer', 'gt:annee_debut'],
         ];
     }
+
     public function messages(): array
     {
         return [
-            
-            'annee.regex' => 'L\'année académique doit être au format "YYYY-YYYY".',
-            
+            'libelle.required' => 'Le libellé de la promotion est obligatoire.',
+            'id_niveau.required' => 'Veuillez sélectionner un niveau.',
+            'id_niveau.exists' => 'Le niveau sélectionné est invalide.',
+            'annee_debut.required' => "L'année de début est obligatoire.",
+            'annee_fin.required' => "L'année de fin est obligatoire.",
+            'annee_fin.gt' => "L'année de fin doit être postérieure à l'année de début.",
         ];
     }
-     public function withValidator($validator)
+
+    /**
+     * Contrôle métier : une promotion dure exactement 3 ans.
+     */
+    public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
-            $annee = $this->input('annee');
-
-            if (! $annee || ! preg_match('/^(\d{4})-(\d{4})$/', $annee, $matches)) {
-                return; // déjà signalé par la règle regex ci-dessus
+            if ($this->annee_debut === null || $this->annee_fin === null) {
+                return;
+            }
+            if (! is_numeric($this->annee_debut) || ! is_numeric($this->annee_fin)) {
+                return;
             }
 
-            $premiereAnnee = (int) $matches[1];
-            $secondeAnnee = (int) $matches[2];
+            $duree = (int) $this->annee_fin - (int) $this->annee_debut;
 
-            if ($secondeAnnee !== $premiereAnnee + 1) {
+            if ($duree !== 3) {
                 $validator->errors()->add(
-                    'annee',
-                    'L\'année académique doit couvrir deux années consécutives (ex: 2025-2026, pas 2025-2027 ou 2026-2025).'
+                    'annee_fin',
+                    "Une promotion doit durer exactement 3 ans. L'écart actuel est de {$duree} an(s). Merci de corriger l'année de fin."
                 );
             }
         });
-      }
-  
+    }
 }
