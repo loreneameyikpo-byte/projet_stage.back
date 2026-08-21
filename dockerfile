@@ -1,10 +1,10 @@
 FROM php:8.4-cli
 
-# libzip-dev est nécessaire pour compiler l'extension "zip" de PHP juste
-# après — sans elle, spatie/laravel-backup ne peut pas créer d'archives.
+
+# libzip-dev : nécessaire pour l'extension "zip" (création des archives
+# de sauvegarde par spatie/laravel-backup).
 # libcurl4-openssl-dev : nécessaire pour l'extension "curl" (utilisée par
 # le client Google API pour envoyer les sauvegardes vers Google Drive).
-
 RUN apt-get update && apt-get install -y \
     libzip-dev \
     zip \
@@ -17,12 +17,8 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# Copier le code de l'application
-COPY . .
-
-# Installer les dépendances PHP (sans les paquets de dev, pour la prod)
-RUN composer install --no-dev --optimize-autoloader
-
-EXPOSE 8000
-
-CMD php artisan serve --host=0.0.0.0 --port=8000
+# ${PORT:-8000} : utilise la variable PORT si la plateforme d'hébergement
+# en assigne une dynamiquement (obligatoire sur Railway), sinon retombe
+# sur 8000 par défaut (développement local via docker-compose, ou
+# plateformes qui laissent choisir un port fixe comme Render).
+CMD php artisan serve --host=0.0.0.0 --port=${PORT:-8000}

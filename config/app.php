@@ -123,5 +123,7 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
+    'backup_trigger_secret' => env('BACKUP_TRIGGER_SECRET'),
+
 
 ];
