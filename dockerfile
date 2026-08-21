@@ -1,6 +1,5 @@
 FROM php:8.4-cli
 
-
 # libzip-dev : nécessaire pour l'extension "zip" (création des archives
 # de sauvegarde par spatie/laravel-backup).
 # libcurl4-openssl-dev : nécessaire pour l'extension "curl" (utilisée par
@@ -16,6 +15,14 @@ RUN apt-get update && apt-get install -y \
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
+
+# Copier le code de l'application
+COPY . .
+
+# Installer les dépendances PHP (sans les paquets de dev, pour la prod)
+RUN composer install --no-dev --optimize-autoloader
+
+EXPOSE 8000
 
 # ${PORT:-8000} : utilise la variable PORT si la plateforme d'hébergement
 # en assigne une dynamiquement (obligatoire sur Railway), sinon retombe
