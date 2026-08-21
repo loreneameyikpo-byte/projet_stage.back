@@ -57,6 +57,13 @@ class UtilisateurController extends Controller
 
         Mail::to($utilisateur->email)->send(new CompteCreeMail($motDePasseTemporaire, $utilisateur));
 
+        $libelleRole = $utilisateur->role?->libelle ?? 'utilisateur';
+        NotificationService::notifierSuperAdmins(
+            'utilisateur_cree',
+            "Nouveau compte {$libelleRole} créé : {$utilisateur->prenom} {$utilisateur->nom}.",
+            '/super-admin/administrateurs'
+        );
+
         return response()->json([
             'message' => 'Utilisateur créé avec succès.',
             // 'mot_de_passe_temporaire' => $motDePasseTemporaire,
