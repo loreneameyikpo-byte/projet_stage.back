@@ -14,6 +14,25 @@ class SystemController extends Controller
      * Vérifie le secret partagé (même secret pour toutes les actions
      * système sensibles de ce contrôleur).
      */
+    /**
+     * Affiche la configuration CORS actuellement chargée par
+     * l'application, pour diagnostiquer les problèmes d'origine
+     * autorisée à distance. Protégée par le même secret partagé.
+     */
+    public function diagnosticCors(Request $request): JsonResponse
+    {
+        if (! $this->autorise($request)) {
+            return response()->json(['message' => 'Non autorisé.'], 403);
+        }
+
+        return response()->json([
+            'allowed_origins' => config('cors.allowed_origins'),
+            'allowed_origins_patterns' => config('cors.allowed_origins_patterns'),
+            'frontend_url_env' => env('FRONTEND_URL'),
+            'frontend_url_prod_env' => env('FRONTEND_URL_PROD'),
+        ]);
+    }
+
     private function autorise(Request $request): bool
     {
         $secretAttendu = config('app.backup_trigger_secret');

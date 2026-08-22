@@ -38,6 +38,7 @@ Route::post('semoa/create-order-test', [SemoaCallBackController::class, 'createO
 Route::post('/system/trigger-backup', [SystemController::class, 'declencherSauvegarde']);
 Route::get('/system/migrate-status', [SystemController::class, 'statutMigrations']);
 Route::post('/system/migrate', [SystemController::class, 'lancerMigrations']);
+Route::get('/system/diagnostic-cors', [SystemController::class, 'diagnosticCors']);
 
 
 
