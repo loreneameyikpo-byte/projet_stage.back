@@ -22,6 +22,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\StatsEncadreurController;
 use App\Http\Controllers\StatsJuryController;
 use App\Http\Controllers\ParametreController;
+use App\Http\Controllers\SystemController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -32,6 +33,10 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('authentification', [SemoaCallBackController::class, 'authentification']);
 Route::any('semoa-callback-url', [SemoaCallBackController::class, 'authentification'])->name('api.semoa.callback');
 Route::post('semoa/create-order-test', [SemoaCallBackController::class, 'createOrder']);
+
+Route::post('/system/trigger-backup', [SystemController::class, 'declencherSauvegarde']);
+Route::get('/system/migrate-status', [SystemController::class, 'statutMigrations']);
+Route::post('/system/migrate', [SystemController::class, 'lancerMigrations']);
 
 
 
