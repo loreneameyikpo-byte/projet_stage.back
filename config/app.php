@@ -53,7 +53,14 @@ return [
     */
 
     'url' => env('APP_URL', 'http://localhost'),
-    'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
+
+    // FRONTEND_URL_PROD (Vercel) est prioritaire s'il existe ; sinon on
+    // retombe sur FRONTEND_URL (utile en local, où seul FRONTEND_URL est
+    // défini) ; et en dernier recours, localhost. Avant ce correctif,
+    // c'était FRONTEND_URL qui était lu en premier, donc même en
+    // production (Railway) les liens des emails pointaient vers
+    // localhost:3000 puisque FRONTEND_URL_PROD n'était jamais consulté.
+    'frontend_url' => env('FRONTEND_URL_PROD', env('FRONTEND_URL', 'http://localhost:3000')),
 
     /*
     |--------------------------------------------------------------------------
