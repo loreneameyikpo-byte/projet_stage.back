@@ -23,6 +23,7 @@ use App\Http\Controllers\StatsEncadreurController;
 use App\Http\Controllers\StatsJuryController;
 use App\Http\Controllers\ParametreController;
 use App\Http\Controllers\SystemController;
+use App\Http\Controllers\HistoriqueController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -93,6 +94,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/administrateurs/{utilisateur}/toggle-actif', [AdministrateurController::class, 'toggleActif']);
         Route::delete('/administrateurs/{utilisateur}', [AdministrateurController::class, 'destroy']);
         Route::post('/administrateurs/{utilisateur}/renvoyer-identifiants', [AdministrateurController::class, 'renvoyerIdentifiants']);
+        Route::get('/historique', [HistoriqueController::class, 'index']);
+   
 });
 
 Route::post('semoa/initiate', [PaiementController::class, 'initiate'])->middleware('auth:sanctum');

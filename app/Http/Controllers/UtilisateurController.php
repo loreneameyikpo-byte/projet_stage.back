@@ -53,6 +53,9 @@ class UtilisateurController extends Controller
             'id_specialite' => $validated['id_specialite'] ?? null,
             'actif' => true,
             'mot_de_passe_a_changer' => true,
+            // Trace quel admin a créé ce compte, pour le tableau de bord
+            // personnel (statistiques limitées à ses propres créations).
+            'cree_par' => $request->user()?->id_utilisateur,
         ]);
 
         Mail::to($utilisateur->email)->send(new CompteCreeMail($motDePasseTemporaire, $utilisateur));

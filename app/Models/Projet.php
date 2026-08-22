@@ -7,10 +7,12 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Projet extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, LogsActivity;
 
     protected $table = 'projets';
     protected $primaryKey = 'id_projet';
@@ -86,4 +88,17 @@ class Projet extends Model
         }
     });
 }
+
+    /**
+     * Configuration du journal d'activité : suit les changements de titre,
+     * description, statut et affectation d'encadreur.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['titre', 'description', 'statut', 'id_encadreur'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('projet');
+    }
 }

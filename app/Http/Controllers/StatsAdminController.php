@@ -8,11 +8,13 @@ use App\Models\Promotion;
 use App\Models\Utilisateur;
 
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class StatsAdminController extends Controller
 {
     /**
      * Statistiques consolidées pour le tableau de bord du super administrateur.
+     * Vue GLOBALE : toute la plateforme, sans filtrage par créateur.
      */
     public function global(): JsonResponse
     {
@@ -59,19 +61,40 @@ class StatsAdminController extends Controller
 
     /**
      * Statistiques pour le tableau de bord de l'administrateur (vue standard).
+     * Vue PERSONNELLE : limitée aux étudiants/encadreurs/jury externes que
+     * CET administrateur a lui-même créés, et aux projets de ces étudiants.
      */
-    public function dashboard(): JsonResponse
+    public function dashboard(Request $request): JsonResponse
     {
-        $totalEtudiants = Utilisateur::whereHas('role', fn ($q) => $q->where('libelle', 'etudiant'))->count();
-        $totalEncadreurs = Utilisateur::whereHas('role', fn ($q) => $q->where('libelle', 'encadreur'))->count();
-        $totalJuryExterne = Utilisateur::whereHas('role', fn ($q) => $q->where('libelle', 'jury_externe'))->count();
-        $totalProjets = Projet::count();
+        $idAdmin = $request->user()->id_utilisateur;
 
-        $repartitionProjets = Projet::selectRaw('statut, count(*) as total')
+        $totalEtudiants = Utilisateur::whereHas('role', fn ($q) => $q->where('libelle', 'etudiant'))
+            ->where('cree_par', $idAdmin)
+            ->count();
+
+        $totalEncadreurs = Utilisateur::whereHas('role', fn ($q) => $q->where('libelle', 'encadreur'))
+            ->where('cree_par', $idAdmin)
+            ->count();
+
+        $totalJuryExterne = Utilisateur::whereHas('role', fn ($q) => $q->where('libelle', 'jury_externe'))
+            ->where('cree_par', $idAdmin)
+            ->count();
+
+        // Les projets n'ont pas de "créateur" propre : on les rattache aux
+        // étudiants que cet admin a créés.
+        $etudiantsIds = Utilisateur::whereHas('role', fn ($q) => $q->where('libelle', 'etudiant'))
+            ->where('cree_par', $idAdmin)
+            ->pluck('id_utilisateur');
+
+        $totalProjets = Projet::whereIn('id_utilisateur', $etudiantsIds)->count();
+
+        $repartitionProjets = Projet::whereIn('id_utilisateur', $etudiantsIds)
+            ->selectRaw('statut, count(*) as total')
             ->groupBy('statut')
             ->pluck('total', 'statut');
 
-        $projetsRecents = Projet::with(['etudiant', 'derniereVersion'])
+        $projetsRecents = Projet::whereIn('id_utilisateur', $etudiantsIds)
+            ->with(['etudiant', 'derniereVersion'])
             ->latest()
             ->take(4)
             ->get()

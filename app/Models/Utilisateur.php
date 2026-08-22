@@ -9,10 +9,12 @@ use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Utilisateur extends Authenticatable implements CanResetPasswordContract
 {
-    use HasFactory, HasApiTokens, HasUuids, CanResetPassword, Notifiable;
+    use HasFactory, HasApiTokens, HasUuids, CanResetPassword, Notifiable, LogsActivity;
 
     protected $table = 'utilisateurs';
     protected $primaryKey = 'id_utilisateur';
@@ -32,6 +34,7 @@ class Utilisateur extends Authenticatable implements CanResetPasswordContract
         'id_promotion',
         'id_filiere',
         'id_specialite',
+        'cree_par',
     ];
     
 
@@ -111,8 +114,35 @@ class Utilisateur extends Authenticatable implements CanResetPasswordContract
         )->withPivot('role_jury', 'note_saisie', 'commentaire');
     }
 
+    // L'administrateur qui a créé ce compte (null pour les comptes créés
+    // autrement, ex. le tout premier super admin).
+    public function createur()
+    {
+        return $this->belongsTo(Utilisateur::class, 'cree_par', 'id_utilisateur');
+    }
+
+    // Tous les comptes que CET utilisateur (généralement un admin) a créés.
+    public function comptesCrees()
+    {
+        return $this->hasMany(Utilisateur::class, 'cree_par', 'id_utilisateur');
+    }
+
     public function hasPermission(string $code): bool
     {
         return $this->role?->permissions()->where('code', $code)->exists() ?? false;
+    }
+
+    /**
+     * Configuration du journal d'activité (spatie/laravel-activitylog) :
+     * seuls les champs listés sont suivis, et seulement quand ils changent
+     * réellement (logOnlyDirty), pour éviter de polluer l'historique.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['nom', 'prenom', 'email', 'actif', 'id_role', 'id_promotion', 'id_filiere', 'id_specialite'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('utilisateur');
     }
 }
