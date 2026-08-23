@@ -1,0 +1,11 @@
+# Lien symbolique créé par "php artisan storage:link" — cause une erreur
+# sous Windows lors de l'upload via "railway up" (os error 1920). Il n'a
+# pas besoin d'être envoyé : le Dockerfile/le déploiement doit recréer ce
+# lien lui-même sur le serveur si nécessaire.
+public/storage
+
+# Dossiers habituels à exclure de l'upload
+vendor/
+node_modules/
+.git/
+storage/logs/*.log

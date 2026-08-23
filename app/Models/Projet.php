@@ -7,8 +7,8 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Spatie\Activitylog\LogOptions;
-use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
 
 class Projet extends Model
 {
@@ -98,7 +98,7 @@ class Projet extends Model
         return LogOptions::defaults()
             ->logOnly(['titre', 'description', 'statut', 'id_encadreur'])
             ->logOnlyDirty()
-            ->dontSubmitEmptyLogs()
+            ->dontLogEmptyChanges()
             ->useLogName('projet');
     }
 }

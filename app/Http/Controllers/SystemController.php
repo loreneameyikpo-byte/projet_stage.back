@@ -33,6 +33,44 @@ class SystemController extends Controller
         ]);
     }
 
+    /**
+     * Diagnostic direct : vérifie si le paquet spatie/laravel-activitylog
+     * est réellement présent et chargeable sur cette instance déployée.
+     */
+    public function diagnosticActivitylog(Request $request): JsonResponse
+    {
+        if (! $this->autorise($request)) {
+            return response()->json(['message' => 'Non autorisé.'], 403);
+        }
+
+        $dossierPackage = base_path('vendor/spatie/laravel-activitylog');
+        $dossierSrc = $dossierPackage.'/src';
+
+        return response()->json([
+            'classe_chargeable' => trait_exists('Spatie\Activitylog\Traits\LogsActivity'),
+            'dossier_package_existe' => is_dir($dossierPackage),
+            'contenu_dossier_package' => is_dir($dossierPackage) ? scandir($dossierPackage) : null,
+            'contenu_dossier_src' => is_dir($dossierSrc) ? scandir($dossierSrc) : 'src introuvable',
+            'contenu_dossier_src_traits' => is_dir($dossierSrc.'/Traits') ? scandir($dossierSrc.'/Traits') : 'Traits introuvable',
+        ]);
+    }
+
+    /**
+     * Liste les index de la table activity_log, pour préparer une
+     * migration corrigeant le type de causer_id/subject_id sans deviner
+     * les noms d'index.
+     */
+    public function diagnosticIndexActivityLog(Request $request): JsonResponse
+    {
+        if (! $this->autorise($request)) {
+            return response()->json(['message' => 'Non autorisé.'], 403);
+        }
+
+        return response()->json([
+            'index' => DB::select('SHOW INDEX FROM activity_log'),
+        ]);
+    }
+
     private function autorise(Request $request): bool
     {
         $secretAttendu = config('app.backup_trigger_secret');

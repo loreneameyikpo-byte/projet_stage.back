@@ -39,6 +39,8 @@ Route::post('/system/trigger-backup', [SystemController::class, 'declencherSauve
 Route::get('/system/migrate-status', [SystemController::class, 'statutMigrations']);
 Route::post('/system/migrate', [SystemController::class, 'lancerMigrations']);
 Route::get('/system/diagnostic-cors', [SystemController::class, 'diagnosticCors']);
+Route::get('/system/diagnostic-activitylog', [SystemController::class, 'diagnosticActivitylog']);
+Route::get('/system/diagnostic-index-activitylog', [SystemController::class, 'diagnosticIndexActivityLog']);
 
 
 

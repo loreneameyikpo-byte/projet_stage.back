@@ -21,7 +21,7 @@ class UtilisateurController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Utilisateur::with(['role', 'promotion.niveau', 'filiere', 'specialite']);
+        $query = Utilisateur::with(['role', 'promotion.niveau', 'filiere', 'specialite', 'createur']);
 
         if ($request->filled('role')) {
             $query->whereHas('role', fn ($q) => $q->where('libelle', $request->query('role')));
@@ -70,14 +70,14 @@ class UtilisateurController extends Controller
         return response()->json([
             'message' => 'Utilisateur créé avec succès.',
             // 'mot_de_passe_temporaire' => $motDePasseTemporaire,
-            'utilisateur' => new UtilisateurResource($utilisateur->load(['role', 'promotion.niveau', 'filiere', 'specialite'])),
+            'utilisateur' => new UtilisateurResource($utilisateur->load(['role', 'promotion.niveau', 'filiere', 'specialite', 'createur'])),
         ], 201);
     }
 
     public function show(Utilisateur $utilisateur): JsonResponse
     {
         return response()->json([
-            'utilisateur' => new UtilisateurResource($utilisateur->load(['role', 'promotion.niveau', 'filiere', 'specialite'])),
+            'utilisateur' => new UtilisateurResource($utilisateur->load(['role', 'promotion.niveau', 'filiere', 'specialite', 'createur'])),
         ]);
     }
 
@@ -90,7 +90,7 @@ class UtilisateurController extends Controller
 
         return response()->json([
             'message' => 'Utilisateur modifié avec succès.',
-            'utilisateur' => new UtilisateurResource($utilisateur->fresh(['role', 'promotion.niveau', 'filiere', 'specialite'])),
+            'utilisateur' => new UtilisateurResource($utilisateur->fresh(['role', 'promotion.niveau', 'filiere', 'specialite', 'createur'])),
         ]);
     }
 

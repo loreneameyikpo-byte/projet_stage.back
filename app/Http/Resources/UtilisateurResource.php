@@ -19,13 +19,19 @@ class UtilisateurResource extends JsonResource
             'role' => $this->role?->libelle,
             'promotion' => $this->when($this->id_promotion, [
                 'id' => $this->promotion?->id_promotion,
-                'annee' => $this->promotion?->annee,
+                'annee_debut' => $this->promotion?->annee_debut,
+                'annee_fin' => $this->promotion?->annee_fin,
                 'intitule' => $this->promotion?->intitule,
             ]),
             'filiere' => $this->filiere?->libelle,
             'specialite' => $this->specialite?->libelle,
             'actif' => $this->actif,
-            'mot_de_passe_a_changer' => $this->mot_de_passe_a_changer,           
+            'mot_de_passe_a_changer' => $this->mot_de_passe_a_changer,
+            // Nom complet de l'admin qui a créé ce compte (null si créé
+            // autrement, ex. le tout premier super admin).
+            'cree_par' => $this->createur
+                ? trim("{$this->createur->prenom} {$this->createur->nom}")
+                : null,
             'created_at' => $this->created_at?->format('Y-m-d'),
         ];
     }

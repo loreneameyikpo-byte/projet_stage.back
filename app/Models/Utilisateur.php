@@ -9,8 +9,8 @@ use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Spatie\Activitylog\LogOptions;
-use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
 
 class Utilisateur extends Authenticatable implements CanResetPasswordContract
 {
@@ -142,7 +142,7 @@ class Utilisateur extends Authenticatable implements CanResetPasswordContract
         return LogOptions::defaults()
             ->logOnly(['nom', 'prenom', 'email', 'actif', 'id_role', 'id_promotion', 'id_filiere', 'id_specialite'])
             ->logOnlyDirty()
-            ->dontSubmitEmptyLogs()
+            ->dontLogEmptyChanges()
             ->useLogName('utilisateur');
     }
 }
